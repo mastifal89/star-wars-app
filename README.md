@@ -6,6 +6,11 @@ To install project just run:
     npm install
 ```
 
+To run the app type:
+
+```
+    npm start
+```
 Available Users:
 
 | User          | Password      |
