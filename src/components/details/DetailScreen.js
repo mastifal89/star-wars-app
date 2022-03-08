@@ -40,7 +40,6 @@ export const DetailScreen = ({film, setShowCards, showCards, userFound}) => {
   const [loading, setLoading] = useState(false);
 
   const clicks = JSON.parse(localStorage.getItem('clicks'));
-  console.log(clicks);
 
   clicks && clicks.map((click) => {
     if(click.name === userFound.name) {

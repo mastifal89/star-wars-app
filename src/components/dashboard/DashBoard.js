@@ -97,7 +97,6 @@ export const DashBoard = () => {
         }
 
     function showMovies() {
-        console.log(films);
         return films.map((film) => {
           return (
             <CharacterMoviesCard 
