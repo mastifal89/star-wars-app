@@ -8,8 +8,6 @@ To install project just run:
 
 Available Users:
 
-```
     User | Luke Skywalker | C-3PO | R2-D2 | Darth Vader | Leia Organa | Owen Lars | Beru Whitesun lars | R5-D4 | Biggs Darklighter| Obi-Wan Kenobi
     --- | --- | --- | --- |--- |--- |--- |--- |--- |--- |--- 
     Password | blond | n/a | n/a | none | brown | brown, grey | brown | n/a | black | auburn, white
-```
