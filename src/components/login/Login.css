@@ -2,11 +2,9 @@ html, body {
     height:100%;
 } 
 
-/*body {
-    background-color: white;
-    background-image: url('../../assets/star-wars.gif');    
-    background-repeat: no-repeat;
-}*/
+body {
+    background-image: none;    
+}
 
 .container {
     background-color: white;

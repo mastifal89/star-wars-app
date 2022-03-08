@@ -1,16 +1,14 @@
-import React, { useContext, useEffect, useReducer } from 'react';
+import React, { useContext, useState } from 'react';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
+import Alert from '@mui/material/Alert';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { LoadingButton } from '@mui/lab';
 import ParticlesBg from 'particles-bg'
@@ -28,29 +26,48 @@ export const Login = () => {
 
     const navigate = useNavigate();
 
-    const { dispatch } = useContext(AuthContext);
+    const { user, dispatch } = useContext(AuthContext);
+
+    const [errorLogin, setErrorLogin] = useState(false);
+    const [tooManyTries, setTooManyTries] = useState(false);
 
     const { data, loading, error } = useFetch('https://swapi.dev/api/people')
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const user = formData.get('user');
-        const password = formData.get('password');
-        const userFound = CheckLogin(user, password, data.results);
-        if(userFound) {
-            encrypt(formData.get('password'));
-            const action = {
-                type: types.login,
-                payload: {
-                    userFound,
-                    password
+        if(user.failedLoginAttemps <3) {
+            const formData = new FormData(e.currentTarget);
+            const user = formData.get('user');
+            const password = formData.get('password');
+            const userFound = CheckLogin(user, password, data.results);
+            if(userFound) {
+                encrypt(formData.get('password'));
+                const action = {
+                    type: types.login,
+                    payload: {
+                        userFound,
+                        password
+                    }
                 }
+                dispatch(action);
+                navigate('/dash', {
+                    replace: true
+                })
+            } else {
+                const action = {
+                    type: types.failedLogin,
+                }
+                dispatch(action);
+                setErrorLogin(true);
             }
-            dispatch(action);
-            navigate('/dash', {
-                replace: true
-            })
+        } else {
+            setTooManyTries(true);
+            setTimeout(() => {
+                const action = {
+                    type: types.resetTries,
+                }
+                dispatch(action);
+            }, 60000);
         }
     };
 
@@ -94,8 +111,11 @@ export const Login = () => {
                 id="password"
                 autoComplete="current-password"
             />
+            {!tooManyTries && errorLogin && <Alert severity="error">Wrong username or password, (tries: {user.failedLoginAttemps})</Alert>}
+            {tooManyTries && <Alert severity="error">Too many tries, wait 60 seconds and try again</Alert>}
             {loading 
                 ? <LoadingButton 
+                    disabled
                     fullWidth
                     variant="contained"
                     sx={{ mt: 3, mb: 2 }}

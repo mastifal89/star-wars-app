@@ -1,3 +1,14 @@
-.container {
-    margin-top: 100px;
+body {
+    background-image: url(../../assets/darth-vader.jpeg);
+}
+
+.movies-container {
+    margin: 100px;
+    justify-content: center;
+    align-content: center;
+    background-color: transparent;
+}
+
+.css-1ri6ub7-MuiPaper-root-MuiCard-root {
+    align-items: center !important;
 }

@@ -1,32 +1,47 @@
 import React, { useContext, useState, useEffect } from 'react';
-import Accordion from '@mui/material/Accordion';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import Typography from '@mui/material/Typography';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Container from '@mui/material/Container';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import ListItemButton from '@mui/material/ListItemButton';
+import Timeline from '@material-ui/lab/Timeline';
+import TimelineItem from '@material-ui/lab/TimelineItem';
+import TimelineSeparator from '@material-ui/lab/TimelineSeparator';
+import TimelineConnector from '@material-ui/lab/TimelineConnector';
+import TimelineContent from '@material-ui/lab/TimelineContent';
+import TimelineDot from '@material-ui/lab/TimelineDot';
+import { makeStyles } from '@material-ui/core/styles'
+import { LinearProgress } from '@material-ui/core';
 import './DashBoard.css'
 import { AuthContext } from '../../auth/authContext';
-import moment from 'moment';
-import useFetch from '../../hooks/useFetch';
+import { CharacterCard } from './CharacterCard';
+import { CharacterMoviesCard } from './CharacterMoviesCard';
+import Button from '@mui/material/Button';
+import { types } from '../../types/types';
+import { useNavigate } from 'react-router-dom'
+import { DetailScreen } from '../details/DetailScreen';
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+      width: '90%',
+      '& > * + *': {
+        marginTop: theme.spacing(2),
+      },
+    },
+    button: {
+        position: 'absolute',
+        top: '100px',
+        right: '160px',
+        backgroundColor: '#00FFFF'
+    }
+}));
 
 export const DashBoard = () => {
 
-    const { user } = useContext(AuthContext);
+    const { user, dispatch } = useContext(AuthContext);
+    const navigate = useNavigate();
     const { userFound } = user;
 
-    console.log(user);
-
-    const [expanded, setExpanded] = useState(false);
-    const [films, setFilms] = useState([]); 
-
-    const handleChange = (panel) => (event, isExpanded) => {
-        setExpanded(isExpanded ? panel : false);
-    };
+    const [films, setFilms] = useState([]);
+    const [filmDetail, setFilmDetail] = useState();
+    const [showCards, setShowCards] = useState(true);
+    const [loading, setStatus] = useState({loading: true});
+    const classes = useStyles();  
 
     useEffect(() => {
         (async() => {
@@ -48,75 +63,97 @@ export const DashBoard = () => {
                 })
                 );       
             } catch (err) {
+                setStatus(false);
                 console.log(err);
             }
             results.then((s) => setFilms(s));
+            setStatus(false);
         })();
-    }, [userFound])
+    }, [userFound]);
+
+    const handleMovieClick = (film) => {
+        const today = new Date(Date.UTC(2022, 3, new Date().getDate()))
+        const options = { weekday: 'long' };
+        const date = today.toLocaleDateString(undefined, options);
+        const name = userFound.name;
+        const movieNameArray = JSON.parse(localStorage.getItem('clicks')) || [];
+        const movieName = {
+            movie: film.film.title,
+            name: name,
+            date
+        };
+        
+        movieNameArray.push(movieName);
+        localStorage.setItem('clicks', JSON.stringify(movieNameArray));
+        
+        setFilmDetail(film);
+        setShowCards(!showCards);
+    }
+
+    function getDayName(dateStr, locale)
+        {
+            var date = new Date(dateStr);
+            return date.toLocaleDateString(locale, { weekday: 'long' });        
+        }
+
+    function showMovies() {
+        console.log(films);
+        return films.map((film) => {
+          return (
+            <CharacterMoviesCard 
+                key={film.film.title} 
+                title={film.film.title} 
+                director={film.film.director} 
+                opening_crawl={film.film.opening_crawl} 
+                handleMovieClick={() => handleMovieClick(film)}
+            />
+          )
+        })
+    }
+
+    function mapTimeline() {
+        const movieMap = showMovies();
+          return movieMap.map((content) => {
+            return <TimelineItem key={content.key} >
+                  <TimelineSeparator>
+                    <TimelineDot />
+                    <TimelineConnector />
+                  </TimelineSeparator>
+                  <TimelineContent>{content}</TimelineContent>
+                </TimelineItem>
+          })
+      };
+
+    const handleSignOut = () => {
+        dispatch({ type: types.resetTries })
+        dispatch({ type: types.logout });
+
+        navigate('/login', {
+            replace: true
+        });
+    };
 
   return (
-    <Container maxWidth="sm" className='container'>
-      <Accordion>
-        <AccordionSummary>
-          <Typography sx={{ width: '33%', flexShrink: 0 }}>
-            Name: 
-          </Typography>
-          <Typography sx={{ color: 'text.secondary' }}>{ userFound.name }</Typography>
-        </AccordionSummary>
-      </Accordion>
-      <Accordion>
-        <AccordionSummary>
-          <Typography sx={{ width: '33%', flexShrink: 0 }}>User since:</Typography>
-          <Typography sx={{ color: 'text.secondary' }}>
-            { moment(userFound.created).format("YYYY/MM/DD") }
-          </Typography>
-        </AccordionSummary>
-      </Accordion>
-      <Accordion expanded={expanded === 'panel3'} onChange={handleChange('panel3')}>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel3bh-content"
-          id="panel3bh-header"
-        >
-          <Typography sx={{ width: '33%', flexShrink: 0 }}>
-            Movies
-          </Typography>
-          <Typography sx={{ color: 'text.secondary' }}>
-            Movie List
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <List>
-              {
-                  films && films.map((film) => (
-                    <ListItem disablePadding>
-                        <ListItemButton>
-                            <ListItemText primary={film.film.title}>
-                                {console.log(film.film.title)}
-                            </ListItemText>
-                        </ListItemButton>
-                    </ListItem>
-                  ))
-              }
-              
-          </List>
-        </AccordionDetails>
-      </Accordion>
-      <Accordion expanded={expanded === 'panel4'} onChange={handleChange('panel4')}>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="panel4bh-content"
-          id="panel4bh-header"
-        >
-          <Typography sx={{ width: '33%', flexShrink: 0 }}>Personal data</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>
-            Nunc vitae orci ultricies, auctor nunc in, volutpat nisl. Integer sit
-            amet egestas eros, vitae egestas augue. Duis vel est augue.
-          </Typography>
-        </AccordionDetails>
-      </Accordion>
-    </Container>
+    <div>
+        {
+            showCards ?
+            <div className='movies-container animate__animated animate__fadeIn'>
+                <CharacterCard className='card' character={userFound} />
+                <Button onClick={handleSignOut} variant="contained" className={classes.button}>Sign Out</Button>
+                <div className="timeline-container">
+                    {loading ? (
+                        <div className={classes.root}>
+                        <LinearProgress />
+                        <LinearProgress />
+                        </div>
+                    ) : (
+                        <Timeline align="alternate">{mapTimeline()}</Timeline>
+                    )}
+                </div>
+            </div>
+            :
+            <DetailScreen film={filmDetail} setShowCards={setShowCards} showCards={showCards} userFound={userFound} />            
+        }
+    </div>
   )
 }

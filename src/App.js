@@ -6,7 +6,7 @@ import { authReducer } from "./auth/authReducer";
 import { AppRouter } from "./routers/AppRoutes";
 
 const init = () => {
-  return JSON.parse(localStorage.getItem('user')) || { logged: false }
+  return JSON.parse(localStorage.getItem('user')) || { logged: false, failedLoginAttemps: 0 }
 }
 
 function App() {
